@@ -1,304 +1,178 @@
 #include <iostream>
-#include<stdio.h>
-#include<cmath>
-#include<cstring>
+#include <string>
 using namespace std;
 
-struct Lista {
-	char wyr[10];
-	int wart=0;
-	Lista* next;
-};
-
-Lista* nowaLista(char wyr[10]) {
-	Lista* nowaLista = new Lista;
-	for(int i=0;i<10;i++)nowaLista->wyr[i] = wyr[i];
-	nowaLista->next = nullptr;
-	return nowaLista;
-}
-void put(char wyr[10], Lista*& head) {
-		Lista* nowyEl = nowaLista(wyr);
-		Lista* temp = head;
-		while (temp != nullptr) {
-			if (temp->next == nullptr)break;
-			temp = temp->next;
+int sprOpR(char plansza[11][11], bool hist[11][11], int dPlanszy, int x, int y) {
+	int opcje[6][2] = { {0,-1},{-1,-1},{-1,0},{1,1},{0,1},{1,0} };
+	int Nx, Ny;
+	if (y == dPlanszy - 1 && plansza[x][y] == 'r')return 1;
+	for (int i = 0; i < 6; i++) {
+		Nx = x + opcje[i][0];
+		Ny = y + opcje[i][1];
+		if (Ny >= 0 && Ny <= dPlanszy - 1 && Nx >= 0 && Nx <= dPlanszy - 1) {
+			if (plansza[Nx][Ny] == 'r' && hist[Nx][Ny] != 1) {
+				hist[Nx][Ny] = 1;
+				if (sprOpR(plansza, hist, dPlanszy, Nx, Ny)) return 1;
+			}
 		}
-		if (temp != nullptr)temp->next = nowyEl;
-}
-void push(char wyr[10], Lista*& head) {
-		Lista* nowyEl = nowaLista(wyr);
-		nowyEl->next = head;
-		head = nowyEl;
-}
-
-void zmWart(Lista*& head, int wart) {
-	head->wart = wart;
-}
-void usunEl(Lista*& head) {
-	if (head == nullptr) return;
-	Lista* temp = head;
-	head = head->next;
-	delete temp;
-	return;
-}
-void usunOst(Lista*& head) {
-	Lista* temp = head;
-	while (temp->next->next != nullptr) {
-		temp = temp->next;
 	}
-	delete temp->next;
-	temp->next = nullptr;
+	return 0;
 }
-void wypiszL2(Lista* head) {
-	Lista* temp = head;
-	while (temp != nullptr) {
-		if (temp->wyr[0] == 'x')cout << temp->wart;
-		else {
-			for (int i = 0; i < strlen(temp->wyr); i++)cout << temp->wyr[i];
+int sprOpB(char plansza[11][11], bool hist[11][11], int dPlanszy, int x, int y) {
+	int opcje[6][2] = { {0,-1},{-1,-1},{-1,0},{1,1},{1,0},{0,1} };
+	int Nx, Ny;
+	if (x == dPlanszy -1 && plansza[x][y] == 'b') return 1;
+	for (int i = 0; i < 6; i++) {
+		Nx = x + opcje[i][0];
+		Ny = y + opcje[i][1];
+		if (Ny >= 0 && Ny <= dPlanszy - 1 && Nx >= 0 && Nx <= dPlanszy - 1) {
+			if (plansza[Nx][Ny] == 'b' && hist[Nx][Ny] != 1) {
+				hist[Nx][Ny] = 1;
+				if (sprOpB(plansza, hist, dPlanszy, Nx, Ny)) return 1;
+			}
 		}
-		cout << "  ";
-		temp = temp->next;
 	}
-	cout << endl;
+	return 0;
 }
-void wypiszL1(Lista* head) {
-	Lista* temp = head;
-	while (temp != nullptr) {
-		if (temp->wyr[0] == 'x')cout << temp->wart;
-		else {
-			for (int i = 0; i < strlen(temp->wyr); i++)cout << temp->wyr[i];
+int koniecG(char plansza[11][11], int red, int blue,int dPlanszy) {
+	if (red == blue || (red - 1) == blue) {
+		bool hist2[11][11] = { 0 };
+		for (int i = 0; i < dPlanszy; i++) {
+			if (plansza[0][i] == 'b') {
+				hist2[0][i] = 1;
+				if (sprOpB(plansza, hist2, dPlanszy, 0, i)) return 3;
+			}
 		}
-		cout << " ";
-		temp = temp->next;
+		bool hist1[11][11] = { 0 };
+		if (dPlanszy == 1 && plansza[0][0] == 'r') return 2;
+
+		for (int i = 0; i < dPlanszy; i++) {
+			if (plansza[i][0] == 'r') {
+				hist1[i][0] = 1;
+				if (sprOpR(plansza, hist1, dPlanszy, i, 0)) return 2;
+			}
+		}
 	}
-	cout << endl;
-}
-int strtoint(char sl[10]) {
-	int wyn = 0;
-	int dl = int(strlen(sl));
-	for (int i = 0; i<dl; i++) {
-		wyn += (int(sl[i])-48) * int(pow(10, dl-i-1));
-	}
-	return wyn;
-}
-void delListe(Lista*& head) {
-	while (head != nullptr) {
-		Lista* temp = head;
-		head = head->next;
-		delete temp;
-	}
-	delete head;
-}
-char znak1(Lista*& head) {
-	return head->wyr[0];
-}
-void pop(Lista*& head, char* slo) {
-	int i = 0;
-	for (i = 0; i < int(strlen(head->wyr)); i++) {
-		slo[i] = head->wyr[i];
-	}
-	slo[i] = '\0';
-	usunEl(head);
-}
-int popint(Lista*& head) {
-	int liczba = head->wart;
-	usunEl(head);
-	return liczba;
+	return 0;
 }
 
-
-int prior(char slo[10]) {
-	char wyb = slo[0];
-	if (wyb == '+' || wyb == '-')return 1;
-	if (wyb == '*' || wyb == '/')return 2;
-	if (wyb == 'N')return 3;
-	if (wyb == '(' || wyb == ')')return 5;
-	else return 4;
-}
-
-void dod1(Lista*& head) {
-	head->wyr[0]++;
-}
-
-int main() {
-	int ile = 0;
-	cin >> ile;
-
-	for (int m = 0; m < ile; m++) {
-		char pob[10] = "onp";
-		char prze[10] = "1";
-		char nawL[10] = "(";
-		char czyint[10] = "x";
-		Lista* stack = new Lista;
-		stack = nullptr;
-		Lista* onp = nowaLista(pob);
-		Lista* przec = nowaLista(prze);
-		int czyOtwartoNawias = 0, liczba=0, brk=0;
-		while (true) {
-			cin >> pob;
-			if (pob[0] == '.')break;
-			if (stack != nullptr)if (pob[0] == '(' && (znak1(stack) == 'M' || znak1(stack) == 'I')) {
-				czyOtwartoNawias = 1;
-			}
-			if (pob[0] >= 48 && pob[0] <= 57) {
-				put(pob, onp);//put
-			}
-			//if liczba
-			else if (pob[0] == ',') {
-				if (czyOtwartoNawias == 1) {
-					while (stack != nullptr) {
-						pop(stack, pob);
-						if (pob[0] == '(')break;
-						if (pob[0] == 'M') {
-							pob[3] = znak1(przec);
-							put(pob, onp);
-						}
-						else put(pob, onp);
-						if (pob[0] == 'M' || pob[0] == 'I')usunEl(przec);
-					}
-					czyOtwartoNawias = 0;
-				}
-				if (czyOtwartoNawias == 0) {
-					czyOtwartoNawias = 1;
-					push(nawL, stack);
-				}
-				dod1(przec);
-			}
-			//if przecinek
-			else if (pob[0] == '(') {
-				if (stack != nullptr)push(pob, stack);
-			}
-			else if (pob[0] == ')') {
-				while (stack != nullptr) {
-					pop(stack, pob);
-					if (pob[0] == '(')break;
-					if (pob[0] == 'M') {
-						pob[3] = znak1(przec);
-						put(pob, onp);
-					}
-					else put(pob, onp);
-					if (pob[0] == 'M' || pob[0] == 'I') usunEl(przec);
-				}
-			}
-			//if nawias
+int isPoss(char plansza[11][11], int red, int blue, int dPlanszy) {
+	if (red == blue || (red - 1) == blue) {
+		if (koniecG(plansza, red, blue, dPlanszy) == 0) return 1;
+		else if (koniecG(plansza, red, blue, dPlanszy) == 2) {
+			if ((red - 1) != blue) return 0;
 			else {
-				if (pob[0] == 'M' || pob[0] == 'I')push(prze, przec);
-				int prio = prior(pob);
-				char top[10] = " ";
-				if (stack != nullptr) {
-					if (znak1(stack) == 'N' && pob[0] == 'N') {
-						prio++;
+				int licz = 0;
+				for (int i = 0; i < dPlanszy; i++) {
+					for (int j = 0; j < dPlanszy; j++) {
+						if (plansza[i][j] == 'r') {
+							plansza[i][j] = ' ';
+							if (koniecG(plansza, red, blue, dPlanszy) == 2) {
+								licz++;
+							}
+							plansza[i][j] = 'r';
+						}
 					}
 				}
-				while (stack != nullptr) {
-					pop(stack, top);
-					if (top[0] == '(' || prior(top) < prio) {
-						push(top, stack);
-						break;
+				if (licz == red)return 0;
+				else return 1;
+			}
+		}
+		else if (koniecG(plansza, red, blue, dPlanszy) == 3) {
+			if (red != blue) return 0;
+			else {
+				int licz = 0;
+				for (int i = 0; i < dPlanszy; i++) {
+					for (int j = 0; j < dPlanszy; j++) {
+						if (plansza[i][j] == 'b') {
+							plansza[i][j] = ' ';
+							if (koniecG(plansza, red, blue, dPlanszy) == 3) {
+								licz++;
+							}
+							plansza[i][j] = 'b';
+						}
 					}
-					if (top[0] == 'M') {
-						top[3] = znak1(przec);
-					}
-					if (top[0] == 'M' || top[0] == 'I') usunEl(przec);
-					put(top, onp);
 				}
-				push(pob, stack);
+				if (licz == blue)return 0;
+				else return 1;
 			}
-			//if operacja
-
 		}
-		while (stack != nullptr) {
-			pop(stack, pob);
-			if (pob[0] == 'M') {
-				pob[3] = znak1(przec);
-				put(pob, onp);
-				usunEl(przec);
-			}
-			else if (pob[0] != '(') put(pob, onp);
-
-
+		else return 0;
+	}
+	else return 0;
+}
+int main() {
+	string lin;
+	char perm[11]="";
+	int dPlanszy = 0, stanC = 0, red=0,blue=0,puste=0,ktlinia=0,lperm=0;
+	char plansza[11][11];
+	while (getline(cin, lin)) {
+		if (lin[0] == 0)cout << endl;
+		if (lin[0] >= 65 && lin[0] <= 90) {
+			stanC = 0;
 		}
-		usunEl(onp);
-		//usunEl(stack);
-		wypiszL2(onp);
-		//zrobienie onp
-		while (onp != nullptr) {
-			pop(onp, pob);
-			if (pob[0] >= '0' && pob[0] <= '9') {
-				liczba = strtoint(pob);
-				pob[0] = 'x';
-				push(pob, stack);
-				zmWart(stack, liczba);
-			}
-			else{
-				push(pob, stack);
-				wypiszL1(stack);
-				pop(stack, pob);
-				switch (pob[0]) {
-				case '+':
-					liczba = popint(stack);
-					liczba += popint(stack);
-					push(czyint,stack);
-					zmWart(stack, liczba);
-					break;
-				case '-':
-					liczba = 0;
-					liczba -= popint(stack);
-					liczba += popint(stack);
-					push(czyint, stack);
-					zmWart(stack, liczba);
-					break;
-				case '*':
-					liczba = popint(stack);
-					liczba *= popint(stack);
-					push(czyint, stack);
-					zmWart(stack, liczba);
-					break;
-				case '/':
-					liczba = popint(stack);
-					if (liczba == 0) {
-						cout << "ERROR" << endl;
-						brk = 1;
-						break;
-					}
-					liczba = popint(stack)/liczba;
-					push(czyint, stack);
-					zmWart(stack, liczba);
-					break;
-				case 'I':
-					int war[3];
-					for (int i = 0; i < 3; i++)war[i] = popint(stack);
-					push(czyint, stack);
-					if(war[2]>0)zmWart(stack, war[1]);
-					else zmWart(stack, war[0]);
-					break;
-				case 'N':
-					liczba = popint(stack) * (-1);
-					push(czyint, stack);
-					zmWart(stack, liczba);
-					break;
-				case 'M':
-					int mima = 0;
-					if(stack!=nullptr) mima = popint(stack);
-					for (int i = 0; i < (int(pob[3]) - 49); i++) {
-						liczba = popint(stack);
-						if (pob[1] == 'I' && liczba < mima) mima = liczba;
-						if (pob[1] == 'A' && liczba > mima) mima = liczba;
-					}
-					push(czyint, stack);
-					zmWart(stack, mima);
-					break;
+		if (lin[0] == ' ' && stanC == 0) {
+			stanC = 1;
+			ktlinia = 0;
+			red = 0;
+			blue = 0;
+			while (lin[dPlanszy] == ' ')dPlanszy++;
+			dPlanszy = (dPlanszy - 1) / 3 + 1;
+		}
+		if (stanC == 1) {
+			for (int i = 0; i < lin.size() - 2; i++) {
+				if (lin[i] == 'r') {
+					red++;
+					perm[lperm] = 'r';
+					lperm++;
 				}
-				if (brk == 1)break;
+				if (lin[i] == 'b') {
+					blue++;
+					perm[lperm] = 'b';
+					lperm++;
+				}
+				if (lin[i] == '<' && lin[i + 1] == ' ' && lin[i + 2] == ' ') {
+					puste++;
+					perm[lperm] = 'P';
+					lperm++;
+				}
+			}
+			if (ktlinia <= dPlanszy) {
+				//cout << ktlinia << endl;
+				int licz = ktlinia;
+				while (licz > 0) {
+					plansza[licz - 1][ktlinia - licz] = perm[ktlinia - licz];
+					licz--;
+				}
+			}
+			if (ktlinia > dPlanszy) {
+				//cout << 2 * dPlanszy - ktlinia << endl;
+				int licz = 0;
+				while (licz < 2 * dPlanszy - ktlinia) {
+					plansza[dPlanszy - licz - 1][ktlinia - dPlanszy + licz] = perm[licz];
+					licz++;
+				}
+			}
+			ktlinia++;
+			lperm = 0;
+		}
+		if (stanC == 0) {
+			if (lin.compare("BOARD_SIZE") == 0) cout << dPlanszy << endl;
+			if (lin.compare("PAWNS_NUMBER") == 0) cout << red + blue << endl;
+			if (lin.compare("IS_BOARD_CORRECT") == 0) {
+				if (red == blue || (red - 1) == blue) cout << "YES" << endl;
+				else cout << "NO" << endl;
+			}
+			if (lin.compare("IS_GAME_OVER") == 0) {
+				if (koniecG(plansza, red, blue, dPlanszy)==2)cout << "YES RED" << endl;
+				else if(koniecG(plansza, red, blue, dPlanszy) == 3)cout << "YES BLUE" << endl;
+				else cout << "NO" << endl;
+			}
+			if (lin.compare("IS_BOARD_POSSIBLE") == 0) {
+				if (isPoss(plansza, red, blue, dPlanszy))cout << "YES" << endl;
+				else cout << "NO" << endl;
 			}
 		}
-		if(brk!=1)wypiszL1(stack);
-
-		cout << endl;
-		delListe(onp);
-		delListe(stack);
-		delListe(przec);
-		brk = 0;
 	}
 	return 0;
 }
